@@ -1,6 +1,6 @@
-## Assignment 3
+## Report
 
-The report is split into two parts and contains the answers to the assignment sheet.
+The report is split into two parts outlining the process.
 
 - **Part 1**
 - **Part 2**
@@ -47,8 +47,6 @@ Running time: 1.73681 s
 .rw-r--r--  '128 B   2023  out2'
 .rw-r--r--    '0 B   2023  prefix.txt'
 ```
-
-1.2 In your report, answer the following questions
 
 - 1.2.1 The prefix file I created had '0' bytes. Due to the input of the file having `0` bytes. The output being `out1` and `out2` came out to be:
   - `128 B` (bytes) for `out1`
@@ -100,7 +98,7 @@ Running time: 1.84464 s
 .rw-r--r--     0 B   2023  prefix.txt
 ```
 
-2. Describe in detail the entire process with screenshots
+2. Description in detail with screenshots.
 
 I downloaded the `c` file from moodle and named it `prog.c`. Then I generated the first binary file without modifying it's content and named it `a_xyz.out` using the following command:
 
