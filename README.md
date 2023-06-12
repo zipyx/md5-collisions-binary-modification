@@ -154,3 +154,134 @@ Screenshot `prog.c` with `xyz` array modified
 Screenshot output (`b_xyz.out`)
 
 ![image](https://i.imgur.com/Qhgptq9.png)
+
+**Hex modification of binary file.**
+
+| Bytes            | Note                                                                                                                  |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `0x0` - `0x3044` | `a_xyz.out` bytes from the `.ELF` byte up until the first four `'A'` in the array (i.e - `['A', 'A', 'A', 'A', ...]`) |
+| `0x0` - `0x3044` | `b_xyz.out` bytes from the `.ELF` byte up until the first four `'B'` in the array (i.e - `['B', 'B', 'B', 'B', ...]`) |
+
+```bash
+# command used to modify a_xyz binary file to get the prefix
+head -c 12356 a_xyz.out > a_prefix
+
+# command used to modify b_xyz binary file to get the prefix
+head -c 12356 b_xyz.out > b_prefix
+```
+
+- Screenshot (`a_prefix` and `b_prefix`)
+
+  ![image](https://i.imgur.com/DIvJISx.png)
+
+  ![image](https://i.imgur.com/XPiJZD7.png)
+
+- Using hex editor `bless` in linux to validate prefix modification.
+
+  - `a_prefix`
+
+    ![image](https://i.imgur.com/mUPgFHR.png)
+
+  - `b_prefix`
+
+    ![image](https://i.imgur.com/XKT89sH.png)
+
+| Bytes               | Note                                                                             |
+| ------------------- | -------------------------------------------------------------------------------- |
+| `0x30fa` - `0x3d6f` | `a_xyz.out` bytes from last 14 bytes in the `xyz` `'A'` array to the end of file |
+| `0x30fa` - `0x3d6f` | `b_xyz.out` bytes from last 14 bytes in the `xyz` `'B'` array to the end of file |
+
+```bash
+# command used to get the suffix of a_xyz binary file
+tail -c +12539 a_xyz.out > a_suffix
+
+# command use to get the suffix of b_xyz binary file
+tail -c +12539 b_xyz.out > b_suffix
+```
+
+- Screenshot (`a_suffix` and `b_suffix`)
+
+![image](https://i.imgur.com/PJJ3nrp.png)
+
+![image](https://i.imgur.com/kvoum7E.png)
+
+- Using hex editor `bless` in linux to validate suffix modification.
+
+  - `a_suffix`
+
+    ![image](https://i.imgur.com/1wAVaQc.png)
+
+  - `b_suffix`
+
+    ![image](https://i.imgur.com/GVTNLrD.png)
+
+Since the above has been validated, I ran `md5collgen` to satisfy the below equation:
+
+```bash
+# Therefore
+MD5 (prefix || P) = MD5 (prefix || Q)
+```
+
+- Output
+
+```bash
+# Run command
+ ~ 🡒  ./md5collgen -p prefix -o p_output q_output
+MD5 collision generator v1.5
+by Marc Stevens (http://www.win.tue.nl/hashclash/)
+
+Using output filenames: 'p_output' and 'q_output'
+Using prefixfile: 'prefix'
+Using initial value: '32255c676e2608603354b5e505aad692'
+
+'
+Generating first block: ............
+Generating second block: S10.....................
+Running time: 5.82972 s
+'
+```
+
+Since the above has been created
+
+- `p` now represents `p_output`
+- `q` now represents `q_output`
+
+Based on **Merkle Damgard** construction of `MD5`, appending the same suffix to the above outputs will result with the same hash value. That is - true for any suffix.
+
+```bash
+# Therefore
+MD5 (prefix || P || suffix) = MD5 (prefix || Q || suffix)
+```
+
+- Appending data.
+
+```bash
+# Appending a_prefix + p_output + a_suffix to file named a_p_a_result
+cat a_prefix p_output a_suffix > a_p_a_result
+
+# Appending a_prefix + p_output + b_suffix to file named a_p_b_result
+cat a_prefix p_output b_suffix > a_p_b_result
+
+# Appending b_prefix + q_output + b_suffix to file named b_q_b_result
+cat b_prefix q_output a_suffix > b_q_a_result
+
+# Appending b_prefix + q_output + a_suffix to file named b_q_a_result
+cat b_prefix q_output a_suffix > b_q_a_result
+```
+
+- Results
+
+```bash
+# Result
+ 🡒  ./a_p_a_result
+414141417f454c46211000000000303e010005010000000400000000f0350000000000400380d04001e01d060004000400000000400000000400000000d82000000d8200000080000000300040001830000001830000001830000001c00000001c00000001000000010004000000000000000
+
+ 🡒  ./a_p_b_result
+414141417f454c46211000000000303e010005010000000400000000f0350000000000400380d04001e01d060004000400000000400000000400000000d82000000d8200000080000000300040001830000001830000001830000001c00000001c00000001000000010004000000000000000
+
+ 🡒  ./b_q_b_result
+424242427f454c46211000000000303e010005010000000400000000f0350000000000400380d04001e01d060004000400000000400000000400000000d82000000d8200000080000000300040001830000001830000001830000001c00000001c00000001000000010004000000000000000
+
+ 🡒  ./b_q_a_result
+424242427f454c46211000000000303e010005010000000400000000f0350000000000400380d04001e01d060004000400000000400000000400000000d82000000d8200000080000000300040001830000001830000001830000001c00000001c00000001000000010004000000000000000
+```
